@@ -26,8 +26,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
-public class StripePaymentImpl implements IPaymentService {
+public class StripePaymentImpl  {
 
     Logger logger = LoggerFactory.getLogger(StripePaymentImpl.class);
 
@@ -41,138 +40,30 @@ public class StripePaymentImpl implements IPaymentService {
     @Value("${stripe.webhook.secret}")
     private String stripeWebhookSecret;
 
+    public StripePaymentImpl(PaymentRepository paymentRepository, TransactionRepository transactionRepository) {
+        this.paymentRepository = paymentRepository;
+        this.transactionRepository = transactionRepository;
+    }
 
-    @Override
-    public PaymentResponse createPayment(OrderRequest orderRequest, String idempotencyKey) {
-        com.stripe.Stripe.apiKey = stripeApiKey;
 
-        String intentKey = (idempotencyKey != null && !idempotencyKey.isBlank()) ? idempotencyKey + "-intent" : UUID.randomUUID().toString() + "-intent";
-
-        Optional<Payment> existingOpt = paymentRepository.findByUuid(idempotencyKey);
-        if (existingOpt.isPresent()) {
-            Payment existingPayment = existingOpt.get();
-            return PaymentResponse.builder()
-                    .success(true)
-                    .paymentId(String.valueOf(existingPayment.getId()))
-                    .clientSecret(existingOpt.get().getClientSecret())
-                    .message("Payment already exists for idempotency key: " + idempotencyKey)
-                    .build();
-        }
-
-        Payment payment = Payment.builder()
-                .uuid(intentKey)
-                .amount(orderRequest.getAmount())
-                .currency(orderRequest.getCurrency())
-                .description(orderRequest.getDescription())
-                .status("CREATED")
-                .build();
-
-        try {
-            payment = paymentRepository.save(payment);
-        }
-        catch (DataIntegrityViolationException e) {
-            payment = paymentRepository.findByUuid(intentKey).orElseThrow(() -> new RuntimeException("Failed to create or find payment with intentKey: " + intentKey));
-        }
-
+    public PaymentIntent createPayment(OrderRequest orderRequest) throws StripeException {
 
         PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
                 .setAmount(orderRequest.getAmount())
                 .setCurrency(orderRequest.getCurrency())
-                .addPaymentMethodType("card")
                 .setDescription(orderRequest.getDescription())
+//                .setPaymentMethod("card")
+                .addPaymentMethodType("card")
+//                .setPaymentMethod("card")
+
                 .build();
 
 
-        RequestOptions requestOptions = RequestOptions.builder()
-                .setIdempotencyKey(intentKey)
-                .build();
-
-        try{
-            PaymentIntent intent = PaymentIntent.create(params,requestOptions);
-
-            Transaction tx = Transaction.builder()
-                    .payment(payment)
-                    .uuid(UUID.randomUUID().toString())
-                    .gatewayTransactionId(intent.getId())
-                    .gateway("Stripe")
-                    .status(intent.getStatus())
-                    .build();
-            transactionRepository.save(tx);
-
-
-            payment.setStatus(intent.getStatus());
-            paymentRepository.save(payment);
-
-            return PaymentResponse.builder()
-                    .success(true)
-                    .paymentId(String.valueOf(payment.getId()))
-                    .clientSecret(intent.getClientSecret())
-                    .message("Payment successfully created")
-                    .build();
-        }catch (StripeException e){
-            payment.setStatus("FAILED");
-            paymentRepository.save(payment);
-            return PaymentResponse.builder()
-                    .success(false)
-                    .paymentId(String.valueOf(payment.getId()))
-                    .message( e.getMessage())
-                    .build();
-        }
-
+        return PaymentIntent.create(params);
 
     }
 
-    @Override
-    public String createCheckoutSession(OrderRequest orderRequest, String idempotencyKey, String baseUrl) {
-//        com.stripe.Stripe.apiKey = stripeApiKey;
-//
-//        String checkoutKey = (idempotencyKey != null && !idempotencyKey.isBlank())
-//                ? idempotencyKey + "-checkout"
-//                : UUID.randomUUID().toString() + "-checkout";
-//
-//
-//        Optional<Payment> existingOpt = paymentRepository.findByUuid(checkoutKey);
-//        if (existingOpt.isPresent()) {
-//            Payment existingPayment = existingOpt.get();
-//            if (existingPayment.getCheckoutUrl() != null && !existingPayment.getCheckoutUrl().isBlank()) {
-//                return existingPayment.getCheckoutUrl();
-//            }
-//        }
-//
-//        Payment payment = Payment.builder()
-//                .uuid(checkoutKey)
-//                .amount(orderRequest.getAmount())
-//                .currency(orderRequest.getCurrency())
-//                .description(orderRequest.getDescription())
-//                .status("CHECKOUT CREATED")
-//                .build();
-//
-//        try {
-//            paymentRepository.save(payment);
-//        } catch (DataIntegrityViolationException e) {
-//            payment = paymentRepository.findByUuid(checkoutKey).orElseThrow(()-> new RuntimeException("Failed to create or find payment with checkoutKey: " + checkoutKey));
-//        }
-//
-return null;
-    }
 
-    @Override
-    public String handleWebhook(String signatureHead, String payload) {
-        return "";
-    }
 
-    @Override
-    public PaymentResponse getPaymentStatus(String uuId) {
-        return null;
-    }
 
-    @Override
-    public PaymentResponse getPaymentStatus(Long id) {
-        return null;
-    }
-
-    @Override
-    public List<PaymentSummary> listAllPayments() {
-        return List.of();
-    }
 }

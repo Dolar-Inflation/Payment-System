@@ -13,23 +13,23 @@ import java.time.Instant;
 @Builder
 public class PaymentResponse {
 
-    private boolean success;
+//    private boolean success;
     private String paymentId;
     private String clientSecret;
     private String  message;
-    private Long orderId;
+//    private Long orderId;
     private String productDesc;
     private Long amount;
     private String currency;
     private String status;
-    private String paymentUuid;
+//    private String paymentUuid;
 
     // latest transaction info
-    private String lastTransactionUuid;
-    private String lastTransactionStatus;
-    private String lastGateway;
-    private String lastGatewayTransactionId;
-    private Instant lastTransactionCreatedAt;
+//    private String lastTransactionUuid;
+//    private String lastTransactionStatus;
+//    private String lastGateway;
+//    private String lastGatewayTransactionId;
+//    private Instant lastTransactionCreatedAt;
 
 }
 
