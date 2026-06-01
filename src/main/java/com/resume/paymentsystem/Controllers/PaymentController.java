@@ -1,5 +1,6 @@
 package com.resume.paymentsystem.Controllers;
 
+import com.resume.paymentsystem.DTO.CheckoutDTO;
 import com.resume.paymentsystem.DTO.OrderRequest;
 import com.resume.paymentsystem.DTO.PaymentResponse;
 import com.resume.paymentsystem.Service.StripePaymentImpl;
@@ -31,9 +32,9 @@ public class PaymentController {
         try {
             PaymentIntent intent = stripePayment.createPayment(orderRequest);
 
+
             PaymentResponse response = new PaymentResponse(intent.getId(),
                     intent.getClientSecret(),
-                    intent.getDescription(),
                     intent.getDescription(),
 
                     intent.getAmount(),
@@ -49,6 +50,13 @@ public class PaymentController {
         }
 
 
+
+    }
+    @PostMapping("checkout")
+    public ResponseEntity<?> checkoutPayment(@RequestBody CheckoutDTO checkoutDTO) throws StripeException {
+
+        String url = stripePayment.createSessionLink(checkoutDTO);
+        return ResponseEntity.ok(url);
 
     }
 

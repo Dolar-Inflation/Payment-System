@@ -1,29 +1,25 @@
 package com.resume.paymentsystem.Service;
 
-import com.resume.paymentsystem.DAO.Entity.Payment;
-import com.resume.paymentsystem.DAO.Entity.Transaction;
+
 import com.resume.paymentsystem.DAO.Repository.PaymentRepository;
 import com.resume.paymentsystem.DAO.Repository.TransactionRepository;
+import com.resume.paymentsystem.DTO.CheckoutDTO;
 import com.resume.paymentsystem.DTO.OrderRequest;
-import com.resume.paymentsystem.DTO.PaymentResponse;
-import com.resume.paymentsystem.DTO.PaymentSummary;
+
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
-import com.stripe.net.RequestOptions;
-import com.stripe.param.PaymentIntentCreateParams;
-import com.stripe.param.billingportal.SessionCreateParams;
-import lombok.RequiredArgsConstructor;
 
-import org.hibernate.Session;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.PaymentIntentCreateParams;
+
+
+import com.stripe.param.checkout.SessionCreateParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
+
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+
 
 @Service
 public class StripePaymentImpl  {
@@ -34,11 +30,7 @@ public class StripePaymentImpl  {
     private final TransactionRepository transactionRepository;
 
 
-    @Value("${stripe.api-key}")
-    private String stripeApiKey;
 
-    @Value("${stripe.webhook.secret}")
-    private String stripeWebhookSecret;
 
     public StripePaymentImpl(PaymentRepository paymentRepository, TransactionRepository transactionRepository) {
         this.paymentRepository = paymentRepository;
@@ -61,6 +53,33 @@ public class StripePaymentImpl  {
 
         return PaymentIntent.create(params);
 
+    }
+    public String createSessionLink(CheckoutDTO checkoutDTO) throws StripeException {
+        SessionCreateParams params = SessionCreateParams.builder()
+                .setSuccessUrl("https://example.com/success")
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
+                                        .setUnitAmount(Long.parseLong(checkoutDTO.getPrice()))
+                                        .setCurrency("USD")
+                                        .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                .setName("order")
+                                                .build()
+                                                        )
+                                        .build())
+                                .setQuantity(checkoutDTO.getQuantity())
+                                .build()
+                )
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .build();
+        Session session = Session.create(params);
+
+
+
+
+
+
+    return session.getUrl();
     }
 
 

@@ -16,7 +16,7 @@ public class PaymentResponse {
 //    private boolean success;
     private String paymentId;
     private String clientSecret;
-    private String  message;
+//    private String  message;
 //    private Long orderId;
     private String productDesc;
     private Long amount;
