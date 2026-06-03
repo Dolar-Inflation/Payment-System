@@ -13,6 +13,8 @@ import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 
 import com.stripe.model.checkout.Session;
+import com.stripe.model.checkout.SessionCollection;
+import com.stripe.model.tax.Registration;
 import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
 
@@ -27,7 +29,9 @@ import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 
 @Service
@@ -95,7 +99,7 @@ public class StripePaymentImpl  {
     }
 
 
-    public void webhookEvent(String payload,String sigHeader) throws Exception {
+    public Map<?,?> webhookEvent(String payload,String sigHeader) throws Exception {
         Event event;
 
         try {
@@ -106,18 +110,45 @@ public class StripePaymentImpl  {
             throw new Exception("signature verification error");
         }
 
-        Map<String,Object> props = mapper.convertValue(event.getData(), Map.class);
+//        Map<String,Object> props = mapper.convertValue(event.getData(), Map.class);
 
-        Object data = props.get("data");
+
+
 
         switch (event.getType()) {
-            case "session_created":{
-                logger.info("session_created");
-            }
-            case "checkout_completed":{
+//            case "session_created":{
+//                logger.info("session_created");
+//            }
+            case "checkout.session.completed":{
                 logger.info("checkout_completed");
+                Session session = (Session) event.getDataObjectDeserializer().getObject()
+                        .orElseThrow(()->new Exception("session is null"));
+                Map<?,?> data =  session.getMetadata();
+                if (session!=null){
+
+//                    HashMap<?,?> data = new HashMap<>();
+
+
+
+                    String sessionId = session.getId();
+                    logger.info("session id is " + session.getId());
+                    String customerEmail = session.getCustomerEmail();
+                    logger.info("customerEmail is " + customerEmail);
+                    Long totalAmount = session.getAmountTotal();
+                    logger.info("totalAmount is " + totalAmount);
+                    String currency = session.getCurrency();
+                    logger.info("currency is " + currency);
+                    String userId = session.getMetadata().get("user-id");
+                    data.entrySet().stream().forEach(entry -> {
+                        System.out.println(entry.getKey());
+                        System.out.println(entry.getValue());
+                    });
+                    return data;
+                }
+
             }
         }
+        return null;
         }
 
 
