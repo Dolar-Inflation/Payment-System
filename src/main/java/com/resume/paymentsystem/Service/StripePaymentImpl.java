@@ -124,27 +124,28 @@ public class StripePaymentImpl  {
                 Session session = (Session) event.getDataObjectDeserializer().getObject()
                         .orElseThrow(()->new Exception("session is null"));
                 Map<?,?> data =  session.getMetadata();
-                if (session!=null){
+
 
 //                    HashMap<?,?> data = new HashMap<>();
 
 
 
-                    String sessionId = session.getId();
-                    logger.info("session id is " + session.getId());
-                    String customerEmail = session.getCustomerEmail();
-                    logger.info("customerEmail is " + customerEmail);
-                    Long totalAmount = session.getAmountTotal();
-                    logger.info("totalAmount is " + totalAmount);
-                    String currency = session.getCurrency();
-                    logger.info("currency is " + currency);
-                    String userId = session.getMetadata().get("user-id");
-                    data.entrySet().stream().forEach(entry -> {
+//                    String sessionId = session.getId();
+//                    logger.info("session id is " + session.getId());
+//                    String customerEmail = session.getCustomerEmail();
+//                    logger.info("customerEmail is " + customerEmail);
+//                    Long totalAmount = session.getAmountTotal();
+//                    logger.info("totalAmount is " + totalAmount);
+//                    String currency = session.getCurrency();
+//                    logger.info("currency is " + currency);
+//                    String userId = session.getMetadata().get("user-id");
+                Map<String, Object> dataMap = mapper.convertValue(session, Map.class);
+                    dataMap.entrySet().stream().forEach(entry -> {
                         System.out.println(entry.getKey());
                         System.out.println(entry.getValue());
                     });
-                    return data;
-                }
+                    return dataMap;
+
 
             }
         }
