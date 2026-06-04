@@ -20,6 +20,7 @@ import com.stripe.param.PaymentIntentCreateParams;
 
 
 import com.stripe.param.checkout.SessionCreateParams;
+import com.stripe.param.checkout.SessionUpdateParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +79,7 @@ public class StripePaymentImpl  {
                                 .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
                                         .setUnitAmount(Long.parseLong(checkoutDTO.getPrice()))
                                         .setCurrency("USD")
+
                                         .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                                 .setName("order")
                                                 .build()
@@ -90,13 +92,19 @@ public class StripePaymentImpl  {
                 .build();
         Session session = Session.create(params);
 
+        SessionUpdateParams updateParams = SessionUpdateParams.builder()
+                .putMetadata("checkout_url", session.getUrl())
+                .build();
 
 
 
 
+    session.update(updateParams);
 
     return session.getUrl();
     }
+
+
 
 
     public Map<?,?> webhookEvent(String payload,String sigHeader) throws Exception {
@@ -123,7 +131,7 @@ public class StripePaymentImpl  {
                 logger.info("checkout_completed");
                 Session session = (Session) event.getDataObjectDeserializer().getObject()
                         .orElseThrow(()->new Exception("session is null"));
-                Map<?,?> data =  session.getMetadata();
+//                Map<?,?> data =  session.getMetadata();
 
 
 //                    HashMap<?,?> data = new HashMap<>();
@@ -141,8 +149,8 @@ public class StripePaymentImpl  {
 //                    String userId = session.getMetadata().get("user-id");
                 Map<String, Object> dataMap = mapper.convertValue(session, Map.class);
                     dataMap.entrySet().stream().forEach(entry -> {
-                        System.out.println(entry.getKey());
-                        System.out.println(entry.getValue());
+                        System.out.println("Key - "+entry.getKey());
+                        System.out.println("Value - "+entry.getValue());
                     });
                     return dataMap;
 

@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.UuidGenerator;
+
+import java.util.UUID;
 
 @Entity
 @Data
@@ -15,15 +18,15 @@ import org.hibernate.annotations.BatchSize;
 @BatchSize(size = 100)
 public class Payment {
     @Id
+
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String uuid;
+    @UuidGenerator
+    @Column(columnDefinition = "VARCHAR(36)")
+    private UUID uuid;
     private Long amount;
     private String currency;
-    private String description;
     private String status;
-    @Column(length = 2000)
-    private String clientSecret;
     @Column(length = 2000)
     private String checkoutUrl;
 }
