@@ -78,7 +78,7 @@ public class StripePaymentImpl  {
                         SessionCreateParams.LineItem.builder()
                                 .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
                                         .setUnitAmount(Long.parseLong(checkoutDTO.getPrice()))
-                                        .setCurrency("USD")
+                                        .setCurrency(checkoutDTO.getCurrency())
 
                                         .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                                 .setName("order")
