@@ -3,6 +3,7 @@ package com.resume.paymentsystem.Service;
 
 import com.resume.paymentsystem.DAO.Repository.PaymentRepository;
 import com.resume.paymentsystem.DAO.Repository.TransactionRepository;
+import com.resume.paymentsystem.DTO.AccountDTO;
 import com.resume.paymentsystem.DTO.CheckoutDTO;
 import com.resume.paymentsystem.DTO.OrderRequest;
 
@@ -21,10 +22,12 @@ import com.stripe.param.PaymentIntentCreateParams;
 
 import com.stripe.param.checkout.SessionCreateParams;
 import com.stripe.param.checkout.SessionUpdateParams;
+import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
@@ -71,7 +74,16 @@ public class StripePaymentImpl  {
         return PaymentIntent.create(params);
 
     }
-    public String createSessionLink(CheckoutDTO checkoutDTO) throws StripeException {
+    public String createSessionLink(CheckoutDTO checkoutDTO, HttpSession httpSession) throws StripeException {
+
+        AccountDTO accountDTO = (AccountDTO) httpSession.getAttribute("account");
+
+        if (accountDTO == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build().toString();
+        }
+
+
+
         SessionCreateParams params = SessionCreateParams.builder()
                 .setSuccessUrl("https://example.com/success")
                 .addLineItem(
@@ -102,6 +114,7 @@ public class StripePaymentImpl  {
     session.update(updateParams);
 
     return session.getUrl();
+
     }
 
 

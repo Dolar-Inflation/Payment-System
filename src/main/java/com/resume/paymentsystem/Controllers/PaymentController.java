@@ -1,6 +1,8 @@
 package com.resume.paymentsystem.Controllers;
 
+import com.resume.paymentsystem.DAO.Entity.Account;
 import com.resume.paymentsystem.DAO.Entity.Payment;
+import com.resume.paymentsystem.DAO.Repository.AccountRepository;
 import com.resume.paymentsystem.DAO.Repository.PaymentRepository;
 import com.resume.paymentsystem.DTO.CheckoutDTO;
 import com.resume.paymentsystem.DTO.OrderRequest;
@@ -10,6 +12,7 @@ import com.resume.paymentsystem.Service.StripePaymentImpl;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.checkout.Session;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.engine.support.discovery.SelectorResolver;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.stripe.service.checkout.*;
 
+import java.security.Principal;
 import java.util.Map;
 
 @RestController
@@ -27,11 +31,13 @@ public class PaymentController {
 
     private final StripePaymentImpl stripePayment;
     private final PaymentRepository paymentRepository;
+    private final AccountRepository accountRepository;
 
 
-    public PaymentController(StripePaymentImpl stripePayment, PaymentRepository paymentRepository) {
+    public PaymentController(StripePaymentImpl stripePayment, PaymentRepository paymentRepository, AccountRepository accountRepository) {
         this.stripePayment = stripePayment;
         this.paymentRepository = paymentRepository;
+        this.accountRepository = accountRepository;
     }
 
     @PostMapping("/create")
@@ -61,16 +67,16 @@ public class PaymentController {
 
     }
     @PostMapping("checkout")
-    public ResponseEntity<?> checkoutPayment(@RequestBody CheckoutDTO checkoutDTO) throws StripeException {
+    public ResponseEntity<?> checkoutPayment(@RequestBody CheckoutDTO checkoutDTO, HttpSession session) throws StripeException {
 
-        String url = stripePayment.createSessionLink(checkoutDTO);
+        String url = stripePayment.createSessionLink(checkoutDTO,session);
 
 
         return ResponseEntity.ok(url);
 
     }
     @PostMapping("webhook")
-    public ResponseEntity<?> webhook(@RequestBody String payload,@RequestHeader HttpHeaders headers) throws Exception {
+    public ResponseEntity<?> webhook(@RequestBody String payload, @RequestHeader HttpHeaders headers, Principal principal) throws Exception {
 
 
         String headersHeaderString = headers.getFirst("Stripe-Signature");
@@ -87,7 +93,10 @@ public class PaymentController {
         payment.setCurrency((String) data.get("currency"));
         payment.setStatus((String) data.get("status"));
         payment.setCheckoutUrl(data.get("metadata").toString());
+
         paymentRepository.save(payment);
+//        accountRepository.save(principal);
+
 
         return new ResponseEntity<>("Webhook success",HttpStatus.OK);
 
