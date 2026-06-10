@@ -87,8 +87,9 @@ public class PaymentController {
 //        stripePayment.webhookEvent(payload,headersHeaderString);
         Map<?,?> data = stripePayment.webhookEvent(payload,headersHeaderString);
         log.info("!!! Webhook event received {}",HttpStatus.OK);
+        Integer accId = (Integer) data.get("accountId");
 
-        Optional<Account> account = accountRepository.findById((Integer) data.get("accountId"));
+//        Optional<Account> account = accountRepository.findById((Integer) data.get("accountId"));
 
 
         Payment payment = new Payment();
@@ -96,7 +97,7 @@ public class PaymentController {
         payment.setCurrency((String) data.get("currency"));
         payment.setStatus((String) data.get("status"));
         payment.setCheckoutUrl(data.get("metadata").toString());
-        payment.setAccount(account.get());
+        payment.setAccount(accountRepository.findById(accId).orElseThrow(()->new Exception("Account not found")));
 
 
         paymentRepository.save(payment);
