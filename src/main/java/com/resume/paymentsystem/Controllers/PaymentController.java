@@ -23,6 +23,7 @@ import com.stripe.service.checkout.*;
 
 import java.security.Principal;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -87,12 +88,16 @@ public class PaymentController {
         Map<?,?> data = stripePayment.webhookEvent(payload,headersHeaderString);
         log.info("!!! Webhook event received {}",HttpStatus.OK);
 
+        Optional<Account> account = accountRepository.findById((Integer) data.get("accountId"));
+
 
         Payment payment = new Payment();
         payment.setAmount((Long) data.get("amountTotal"));
         payment.setCurrency((String) data.get("currency"));
         payment.setStatus((String) data.get("status"));
         payment.setCheckoutUrl(data.get("metadata").toString());
+        payment.setAccount(account.get());
+
 
         paymentRepository.save(payment);
 //        accountRepository.save(principal);

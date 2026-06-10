@@ -29,4 +29,7 @@ public class Payment {
     private String status;
     @Column(length = 2000)
     private String checkoutUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Account account;
 }

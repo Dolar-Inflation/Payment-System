@@ -4,16 +4,22 @@ import com.resume.paymentsystem.DAO.Entity.Account;
 import com.resume.paymentsystem.DAO.Repository.AccountRepository;
 import com.resume.paymentsystem.DTO.AccountDTO;
 import com.resume.paymentsystem.Utility.CustomUserDetailsService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +38,8 @@ public class AccountController {
     private final PasswordEncoder passwordEncoder;
     @Autowired
     private final AuthenticationManager authenticationManager;
+    private final SecurityContextRepository securityContextRepository =
+            new HttpSessionSecurityContextRepository();
 
     public AccountController(AccountRepository accountRepository, CustomUserDetailsService customUserDetailsService, ObjectMapper objectMapper, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
         this.accountRepository = accountRepository;
@@ -41,7 +49,7 @@ public class AccountController {
         this.authenticationManager = authenticationManager;
     }
 @PostMapping("/register")
-    public ResponseEntity<String> createAccount(HttpSession httpSession, @RequestBody AccountDTO accountDTO) {
+    public ResponseEntity<String> createAccount( @RequestBody AccountDTO accountDTO) {
 
 
 
@@ -50,15 +58,22 @@ public class AccountController {
         Account account = new Account();
         account.setName(accountDTO.name());
         account.setPassword(passwordEncoder.encode(accountDTO.password()));
+
+//    Authentication authentication = authenticationManager.authenticate(
+//            new UsernamePasswordAuthenticationToken(account.getUsername(), account.getPassword()));
+//    SecurityContextHolder.getContext().setAuthentication(authentication);
+
         accountRepository.save(account);
-        return ResponseEntity.ok("Account created");
+        return ResponseEntity.ok("Account created" );
 
 
     }
 
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody AccountDTO accountDTO) {
+    public ResponseEntity<String> login(@RequestBody AccountDTO accountDTO,
+                                        HttpServletRequest request,
+                                        HttpServletResponse response,HttpSession session) {
 
 
         try {
@@ -66,9 +81,15 @@ public class AccountController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(accountDTO.name(), accountDTO.password()));
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+//            SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authentication);
+            SecurityContextHolder.setContext(context);
 
-            return ResponseEntity.ok("Login successful");
+            securityContextRepository.saveContext(context, request, response);
+            session.setAttribute("account", accountDTO);
+
+            return ResponseEntity.ok("Login successful"+authentication.getDetails());
         }
 
 

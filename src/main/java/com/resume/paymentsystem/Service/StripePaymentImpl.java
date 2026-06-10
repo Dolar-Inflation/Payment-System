@@ -1,6 +1,8 @@
 package com.resume.paymentsystem.Service;
 
 
+import com.resume.paymentsystem.DAO.Entity.Account;
+import com.resume.paymentsystem.DAO.Repository.AccountRepository;
 import com.resume.paymentsystem.DAO.Repository.PaymentRepository;
 import com.resume.paymentsystem.DAO.Repository.TransactionRepository;
 import com.resume.paymentsystem.DTO.AccountDTO;
@@ -45,6 +47,7 @@ public class StripePaymentImpl  {
 
     private final PaymentRepository paymentRepository;
     private final TransactionRepository transactionRepository;
+    private final AccountRepository accountRepository;
 
     @Value("${stripe.webhook.secret}")
     private String webhookStripe;
@@ -52,9 +55,10 @@ public class StripePaymentImpl  {
 
 
 
-    public StripePaymentImpl(PaymentRepository paymentRepository, TransactionRepository transactionRepository) {
+    public StripePaymentImpl(PaymentRepository paymentRepository, TransactionRepository transactionRepository, AccountRepository accountRepository) {
         this.paymentRepository = paymentRepository;
         this.transactionRepository = transactionRepository;
+        this.accountRepository = accountRepository;
     }
 
 
@@ -71,6 +75,7 @@ public class StripePaymentImpl  {
                 .build();
 
 
+
         return PaymentIntent.create(params);
 
     }
@@ -81,6 +86,7 @@ public class StripePaymentImpl  {
         if (accountDTO == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build().toString();
         }
+        Account account = accountRepository.findByName(accountDTO.name());
 
 
 
@@ -92,11 +98,13 @@ public class StripePaymentImpl  {
                                         .setUnitAmount(Long.parseLong(checkoutDTO.getPrice()))
                                         .setCurrency(checkoutDTO.getCurrency())
 
+
                                         .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                                 .setName("order")
                                                 .build()
                                                         )
                                         .build())
+                                .putMetadata("accountId", String.valueOf(account.getId()))
                                 .setQuantity(checkoutDTO.getQuantity())
                                 .build()
                 )
@@ -120,7 +128,7 @@ public class StripePaymentImpl  {
 
 
 
-    public Map<?,?> webhookEvent(String payload,String sigHeader) throws Exception {
+    public Map<?,?> webhookEvent(String payload,String sigHeader/*,@RequestHeader HttpHeaders headers*/) throws Exception {
         Event event;
 
         try {

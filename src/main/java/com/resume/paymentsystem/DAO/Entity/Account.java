@@ -29,7 +29,7 @@ public class Account implements UserDetails {
     private String name;
     private String password;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     private List<Payment> payments;
 
     @Override
