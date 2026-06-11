@@ -37,6 +37,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 
@@ -79,10 +80,13 @@ public class StripePaymentImpl  {
         return PaymentIntent.create(params);
 
     }
+    //TODO Добавить сериализацию и десериализацию на Account и AccountDTO
+    //TODO исправить n+1 на авторизации
     public String createSessionLink(CheckoutDTO checkoutDTO, HttpSession httpSession) throws StripeException {
-
         AccountDTO accountDTO = (AccountDTO) httpSession.getAttribute("account");
 
+//        Map<?,?> accd = (Map<?, ?>) httpSession.getAttribute("account");
+//        AccountDTO accountDTO = (AccountDTO) accd.get("account");
         if (accountDTO == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build().toString();
         }
@@ -128,58 +132,46 @@ public class StripePaymentImpl  {
 
 
 
-    public Map<?,?> webhookEvent(String payload,String sigHeader/*,@RequestHeader HttpHeaders headers*/) throws Exception {
+    public Map<?,?> webhookEvent(String payload,String sigHeader,HttpSession httpSession/*,@RequestHeader HttpHeaders headers*/) throws Exception {
         Event event;
-
+        AccountDTO accountDTO = (AccountDTO) httpSession.getAttribute("account");
         try {
+
             event = Webhook.constructEvent(payload, sigHeader, webhookStripe);
 
-        }catch (SignatureVerificationException e){
+        } catch (SignatureVerificationException e) {
             logger.error(e.getMessage());
             throw new Exception("signature verification error");
         }
-
 //        Map<String,Object> props = mapper.convertValue(event.getData(), Map.class);
-
-
-
-
-        switch (event.getType()) {
+//        switch (event.getType()) {
 //            case "session_created":{
 //                logger.info("session_created");
 //            }
-            case "checkout.session.completed":{
-                logger.info("checkout_completed");
-                Session session = (Session) event.getDataObjectDeserializer().getObject()
-                        .orElseThrow(()->new Exception("session is null"));
-//                Map<?,?> data =  session.getMetadata();
+//            case "checkout.session.completed":
+//
+        if (Objects.equals(event.getType(), "checkout.session.completed")) {
+            logger.info("checkout_completed");
+            Session session = (Session) event.getDataObjectDeserializer().getObject()
+                    .orElseThrow(() -> new Exception("session is null"));
+
+            Map<String, Object> dataMap = mapper.convertValue(session, Map.class);
+
+            dataMap.entrySet().stream().forEach(entry -> {
+                System.out.println("Key - " + entry.getKey());
+                System.out.println("Value - " + entry.getValue());
+            });
+            dataMap.put("accountId", accountRepository.findByName(accountDTO.name()).getId());
+            return dataMap;
 
 
-//                    HashMap<?,?> data = new HashMap<>();
-
-
-
-//                    String sessionId = session.getId();
-//                    logger.info("session id is " + session.getId());
-//                    String customerEmail = session.getCustomerEmail();
-//                    logger.info("customerEmail is " + customerEmail);
-//                    Long totalAmount = session.getAmountTotal();
-//                    logger.info("totalAmount is " + totalAmount);
-//                    String currency = session.getCurrency();
-//                    logger.info("currency is " + currency);
-//                    String userId = session.getMetadata().get("user-id");
-                Map<String, Object> dataMap = mapper.convertValue(session, Map.class);
-                    dataMap.entrySet().stream().forEach(entry -> {
-                        System.out.println("Key - "+entry.getKey());
-                        System.out.println("Value - "+entry.getValue());
-                    });
-                    return dataMap;
-
-
-            }
         }
-        return null;
+//        }
+        else {
+            logger.info("Webhook received, but event type is ignored (not checkout.session.completed).");
+            return null;
         }
+    }
 
 
 

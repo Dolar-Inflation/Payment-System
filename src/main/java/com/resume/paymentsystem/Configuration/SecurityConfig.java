@@ -27,47 +27,47 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//    http.csrf(csrf -> csrf.disable());
-//
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http.csrf(csrf -> csrf.disable());
+
 //        http.securityContext(context -> context
 //                .securityContextRepository(new HttpSessionSecurityContextRepository())
 //        );
-//
-//        http.authorizeHttpRequests(authorizeRequests ->
-//                authorizeRequests.requestMatchers(
-//                        "/payment-system/**",
-//                        "/api/payments/**",
-//                                "/api/payments/checkout",
-//                                "/api/payments/webhook",
-//                                "/payment-system/login",
-//                                "/payment-system/register").permitAll()
-//                .anyRequest().authenticated()
-//
-//
-//
-//
-//        );
-//
-//        return http.build();
-//}
-@Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    // 1. Полностью отключаем CSRF защиту
-    http.csrf(csrf -> csrf.disable());
 
-    // 2. Отключаем обработку заголовков базовой авторизации (Basic Auth) и стандартной формы входа
-    http.httpBasic(basic -> basic.disable());
-    http.formLogin(form -> form.disable());
+        http.authorizeHttpRequests(authorizeRequests ->
+                authorizeRequests.requestMatchers(
+                        "/payment-system/**",
+                        "/api/payments/**",
+                                "/api/payments/checkout",
+                                "/api/payments/webhook",
+                                "/payment-system/login",
+                                "/payment-system/register").permitAll()
+                .anyRequest().authenticated()
 
-    // 3. РАЗРЕШАЕМ ВСЁ: меняем .anyRequest().authenticated() на .permitAll()
-    http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
-            .anyRequest().permitAll()
-    );
 
-    return http.build();
+
+
+        );
+
+        return http.build();
 }
+//@Bean
+//public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//    // 1. Полностью отключаем CSRF защиту
+//    http.csrf(csrf -> csrf.disable());
+//
+//    // 2. Отключаем обработку заголовков базовой авторизации (Basic Auth) и стандартной формы входа
+//    http.httpBasic(basic -> basic.disable());
+//    http.formLogin(form -> form.disable());
+//
+//    // 3. РАЗРЕШАЕМ ВСЁ: меняем .anyRequest().authenticated() на .permitAll()
+//    http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
+//            .anyRequest().permitAll()
+//    );
+//
+//    return http.build();
+//}
 
 
 }

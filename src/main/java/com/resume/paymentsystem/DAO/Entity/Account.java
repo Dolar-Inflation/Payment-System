@@ -1,10 +1,7 @@
 package com.resume.paymentsystem.DAO.Entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.UuidGenerator;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,6 +27,7 @@ public class Account implements UserDetails {
     private String password;
 
     @OneToMany(fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<Payment> payments;
 
     @Override

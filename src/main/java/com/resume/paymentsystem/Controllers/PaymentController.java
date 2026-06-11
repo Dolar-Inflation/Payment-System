@@ -77,27 +77,30 @@ public class PaymentController {
 
     }
     @PostMapping("webhook")
-    public ResponseEntity<?> webhook(@RequestBody String payload, @RequestHeader HttpHeaders headers, Principal principal) throws Exception {
+    public ResponseEntity<?> webhook(@RequestBody String payload, @RequestHeader HttpHeaders headers, Principal principal,HttpSession httpSession) throws Exception {
 
 
         String headersHeaderString = headers.getFirst("Stripe-Signature");
         if (headersHeaderString==null || headersHeaderString.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-//        stripePayment.webhookEvent(payload,headersHeaderString);
-        Map<?,?> data = stripePayment.webhookEvent(payload,headersHeaderString);
-        log.info("!!! Webhook event received {}",HttpStatus.OK);
-        Integer accId = (Integer) data.get("accountId");
 
-//        Optional<Account> account = accountRepository.findById((Integer) data.get("accountId"));
+        Map<?,?> data = stripePayment.webhookEvent(payload,headersHeaderString,httpSession);
 
+
+        if (data == null) {
+            return new ResponseEntity<>("Event received and skipped", HttpStatus.OK);
+        }
+//        Account account1 = (Account) httpSession.getAttribute("accountId");
+        Account account =  accountRepository.findById((Integer) data.get("account")).orElseThrow(() -> new Exception("Account not is null"));
+        log.info("!!! Account received {}",account);
 
         Payment payment = new Payment();
         payment.setAmount((Long) data.get("amountTotal"));
         payment.setCurrency((String) data.get("currency"));
         payment.setStatus((String) data.get("status"));
         payment.setCheckoutUrl(data.get("metadata").toString());
-        payment.setAccount(accountRepository.findById(accId).orElseThrow(()->new Exception("Account not found")));
+        payment.setAccount(accountRepository.findById(Math.toIntExact(account.getId())).orElseThrow(()->new Exception("Account not found")));
 
 
         paymentRepository.save(payment);
