@@ -95,12 +95,14 @@ public class StripePaymentImpl  {
 
 
         SessionCreateParams params = SessionCreateParams.builder()
+                .setClientReferenceId(String.valueOf(account.getId()))
                 .setSuccessUrl("https://example.com/success")
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
                                 .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
                                         .setUnitAmount(Long.parseLong(checkoutDTO.getPrice()))
                                         .setCurrency(checkoutDTO.getCurrency())
+
 
 
                                         .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
@@ -132,9 +134,9 @@ public class StripePaymentImpl  {
 
 
 
-    public Map<?,?> webhookEvent(String payload,String sigHeader,HttpSession httpSession/*,@RequestHeader HttpHeaders headers*/) throws Exception {
+    public Map<?,?> webhookEvent(String payload,String sigHeader/*,@RequestHeader HttpHeaders headers*/) throws Exception {
         Event event;
-        AccountDTO accountDTO = (AccountDTO) httpSession.getAttribute("account");
+//        AccountDTO accountDTO = (AccountDTO) httpSession.getAttribute("account");
         try {
 
             event = Webhook.constructEvent(payload, sigHeader, webhookStripe);
@@ -156,12 +158,12 @@ public class StripePaymentImpl  {
                     .orElseThrow(() -> new Exception("session is null"));
 
             Map<String, Object> dataMap = mapper.convertValue(session, Map.class);
-
+            Long clientReferenceId = Long.valueOf(session.getClientReferenceId());
             dataMap.entrySet().stream().forEach(entry -> {
                 System.out.println("Key - " + entry.getKey());
                 System.out.println("Value - " + entry.getValue());
             });
-            dataMap.put("accountId", accountRepository.findByName(accountDTO.name()).getId());
+            dataMap.put("accountId", clientReferenceId/*accountRepository.findById(Math.toIntExact(clientReferenceId))*/);
             return dataMap;
 
 

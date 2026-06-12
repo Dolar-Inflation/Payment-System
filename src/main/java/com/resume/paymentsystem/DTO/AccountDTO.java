@@ -3,9 +3,11 @@ package com.resume.paymentsystem.DTO;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
+
 
 @Builder
-public record AccountDTO(String name, String password) {
+public record AccountDTO(String name, String password) implements Serializable {
 
     public AccountDTO{
         if (name.isBlank() || password.isBlank()) {

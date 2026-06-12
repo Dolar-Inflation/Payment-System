@@ -77,7 +77,7 @@ public class PaymentController {
 
     }
     @PostMapping("webhook")
-    public ResponseEntity<?> webhook(@RequestBody String payload, @RequestHeader HttpHeaders headers, Principal principal,HttpSession httpSession) throws Exception {
+    public ResponseEntity<?> webhook(@RequestBody String payload, @RequestHeader HttpHeaders headers, Principal principal) throws Exception {
 
 
         String headersHeaderString = headers.getFirst("Stripe-Signature");
@@ -85,14 +85,17 @@ public class PaymentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        Map<?,?> data = stripePayment.webhookEvent(payload,headersHeaderString,httpSession);
+        Map<?,?> data = stripePayment.webhookEvent(payload,headersHeaderString);
 
 
         if (data == null) {
             return new ResponseEntity<>("Event received and skipped", HttpStatus.OK);
         }
 //        Account account1 = (Account) httpSession.getAttribute("accountId");
-        Account account =  accountRepository.findById((Integer) data.get("account")).orElseThrow(() -> new Exception("Account not is null"));
+//        Account account =  accountRepository.findById((Integer) data.get("accountId")).orElseThrow(() -> new Exception("Account not is null"));
+        Long AccId = (Long) data.get("accountId");
+        Account account =  accountRepository.findById(Math.toIntExact(AccId)).orElseThrow(() -> new Exception("Account not is null"));
+
         log.info("!!! Account received {}",account);
 
         Payment payment = new Payment();
@@ -100,7 +103,7 @@ public class PaymentController {
         payment.setCurrency((String) data.get("currency"));
         payment.setStatus((String) data.get("status"));
         payment.setCheckoutUrl(data.get("metadata").toString());
-        payment.setAccount(accountRepository.findById(Math.toIntExact(account.getId())).orElseThrow(()->new Exception("Account not found")));
+        payment.setAccount(account);
 
 
         paymentRepository.save(payment);
