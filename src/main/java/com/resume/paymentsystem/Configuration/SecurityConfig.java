@@ -42,7 +42,10 @@ public class SecurityConfig {
                                 "/api/payments/checkout",
                                 "/api/payments/webhook",
                                 "/payment-system/login",
-                                "/payment-system/register").permitAll()
+                                "/payment-system/register",
+                                "/api/data/**",
+                                "/api/data/userdata/",
+                                "/api/data/userdata/transactions").permitAll()
                 .anyRequest().authenticated()
 
 

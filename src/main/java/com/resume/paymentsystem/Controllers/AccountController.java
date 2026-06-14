@@ -20,11 +20,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import tools.jackson.databind.ObjectMapper;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/payment-system/")
@@ -97,6 +98,19 @@ public class AccountController {
             e.printStackTrace();
         }
         return ResponseEntity.badRequest().body("Login failed");
+    }
+    @GetMapping("/userdata")
+    public String getUserData(HttpSession session) {
+        AccountDTO account = (AccountDTO) session.getAttribute("account");
+
+        return account.name();
+    }
+    @GetMapping("/userdata/all")
+    public Map<Long,String> getAllUserData() {
+        List<Account> data = accountRepository.findAll();
+
+        data.forEach(System.out::println);
+        return data.stream().collect(Collectors.toMap(Account::getId,Account::getName));
     }
 
 
