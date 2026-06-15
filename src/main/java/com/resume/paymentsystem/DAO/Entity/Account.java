@@ -27,9 +27,9 @@ public class Account implements UserDetails, Serializable {
     private String name;
     private String password;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @ToString.Exclude
-    private List<Payment> payments;
+//    @OneToMany(fetch = FetchType.LAZY)
+//    @ToString.Exclude
+//    private List<Payment> payments;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

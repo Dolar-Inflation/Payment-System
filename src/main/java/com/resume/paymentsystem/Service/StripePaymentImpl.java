@@ -4,20 +4,16 @@ package com.resume.paymentsystem.Service;
 import com.resume.paymentsystem.DAO.Entity.Account;
 import com.resume.paymentsystem.DAO.Repository.AccountRepository;
 import com.resume.paymentsystem.DAO.Repository.PaymentRepository;
-import com.resume.paymentsystem.DAO.Repository.TransactionRepository;
 import com.resume.paymentsystem.DTO.AccountDTO;
 import com.resume.paymentsystem.DTO.CheckoutDTO;
 import com.resume.paymentsystem.DTO.OrderRequest;
 
-import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 
 import com.stripe.model.checkout.Session;
-import com.stripe.model.checkout.SessionCollection;
-import com.stripe.model.tax.Registration;
 import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
 
@@ -34,11 +30,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 
 @Service
@@ -47,7 +40,7 @@ public class StripePaymentImpl  {
     Logger logger = LoggerFactory.getLogger(StripePaymentImpl.class);
 
     private final PaymentRepository paymentRepository;
-    private final TransactionRepository transactionRepository;
+
     private final AccountRepository accountRepository;
 
     @Value("${stripe.webhook.secret}")
@@ -56,9 +49,8 @@ public class StripePaymentImpl  {
 
 
 
-    public StripePaymentImpl(PaymentRepository paymentRepository, TransactionRepository transactionRepository, AccountRepository accountRepository) {
+    public StripePaymentImpl(PaymentRepository paymentRepository, AccountRepository accountRepository) {
         this.paymentRepository = paymentRepository;
-        this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
     }
 
