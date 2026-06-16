@@ -15,7 +15,5 @@ public record AccountDTO(String name, String password) implements Serializable {
         }
     }
 
-//    private String name;
-//    private String password;
 
 }

@@ -6,46 +6,44 @@ import com.resume.paymentsystem.DAO.Repository.AccountRepository;
 import com.resume.paymentsystem.DAO.Repository.PaymentRepository;
 import com.resume.paymentsystem.DTO.CheckoutDTO;
 import com.resume.paymentsystem.DTO.OrderRequest;
-import com.resume.paymentsystem.DTO.PaymentDTO;
 import com.resume.paymentsystem.DTO.PaymentResponse;
-import com.resume.paymentsystem.Service.StripePaymentImpl;
+import com.resume.paymentsystem.Service.IPaymentService;
+import com.resume.paymentsystem.Service.StripePaymentService;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
-import com.stripe.model.checkout.Session;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.platform.engine.support.discovery.SelectorResolver;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.stripe.service.checkout.*;
 
 import java.security.Principal;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/payments")
 @Slf4j
 public class PaymentController {
 
-    private final StripePaymentImpl stripePayment;
+//    private final StripePaymentService stripePayment;
     private final PaymentRepository paymentRepository;
     private final AccountRepository accountRepository;
+    private final IPaymentService stripePaymentService;
 
 
-    public PaymentController(StripePaymentImpl stripePayment, PaymentRepository paymentRepository, AccountRepository accountRepository) {
-        this.stripePayment = stripePayment;
+    public PaymentController(/*StripePaymentService stripePayment,*/ PaymentRepository paymentRepository, AccountRepository accountRepository, IPaymentService stripePaymentService) {
+//        this.stripePayment = stripePayment;
         this.paymentRepository = paymentRepository;
         this.accountRepository = accountRepository;
+        this.stripePaymentService = stripePaymentService;
     }
 
     @PostMapping("/create")
     public ResponseEntity<PaymentResponse> createPayment(@RequestBody OrderRequest orderRequest) {
 
         try {
-            PaymentIntent intent = stripePayment.createPayment(orderRequest);
+            PaymentIntent intent = (PaymentIntent) stripePaymentService.createPayment(orderRequest);
 
 
             PaymentResponse response = new PaymentResponse(intent.getId(),
@@ -62,18 +60,24 @@ public class PaymentController {
 //            throw new RuntimeException(e);
             log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
 
 
     }
     @PostMapping("checkout")
-    public ResponseEntity<?> checkoutPayment(@RequestBody CheckoutDTO checkoutDTO, HttpSession session) throws StripeException {
+    public ResponseEntity<?> checkoutPayment(@RequestBody CheckoutDTO checkoutDTO, HttpSession session) throws StripeException, Exception {
+        try {
+            String url = stripePaymentService.createSessionLink(checkoutDTO, session);
+            return ResponseEntity.ok(url);
+        }
+        catch (StripeException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
 
-        String url = stripePayment.createSessionLink(checkoutDTO,session);
 
-
-        return ResponseEntity.ok(url);
 
     }
     @PostMapping("webhook")
@@ -85,7 +89,8 @@ public class PaymentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        Map<?,?> data = stripePayment.webhookEvent(payload,headersHeaderString);
+        Map<?,?> data = stripePaymentService.webhookEvent(payload,headersHeaderString);
+
 
 
         if (data == null) {

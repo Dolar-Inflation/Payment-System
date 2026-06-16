@@ -45,7 +45,8 @@ public class SecurityConfig {
                                 "/payment-system/register",
                                 "/api/data/**",
                                 "/api/data/userdata/",
-                                "/api/data/userdata/transactions").permitAll()
+                                "/api/data/userdata/transactions",
+                                "/api/data/userdata/transactions/uuid/").permitAll()
                 .anyRequest().authenticated()
 
 
