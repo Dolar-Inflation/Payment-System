@@ -66,13 +66,13 @@ public class AccountController {
             securityContextRepository.saveContext(context, request, response);
             session.setAttribute("account", accountDTO);
 
-            return ResponseEntity.ok("Login successful"+authentication.getDetails());
+            return ResponseEntity.ok("Login successful "+accountDTO.name());
         }
 
 
         catch (AuthenticationException e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().body("Login failed");
+            return ResponseEntity.badRequest().body("Login failed "+accountDTO.name());
         }
 
     }

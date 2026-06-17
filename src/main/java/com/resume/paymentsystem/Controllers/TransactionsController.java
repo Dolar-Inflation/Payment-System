@@ -51,10 +51,7 @@ public class TransactionsController {
     @GetMapping("/userdata/transactions/uuid/")
     public ResponseEntity<String> getTransactByUUid(@RequestParam UUID uuid) throws ChangeSetPersister.NotFoundException {
 
-        Payment payment =((Payment) transactionService.findEntity(uuid));
-//        PaymentDTO dto = paymentMapper.paymentToPaymentDTO(payment);
-
-        return ResponseEntity.ok("Transaction data: " + payment.toString());
+        return ResponseEntity.ok("Transaction data: " + transactionService.findEntity(uuid).toString());
     }
 
     }

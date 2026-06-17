@@ -31,28 +31,33 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(csrf -> csrf.disable());
 
-//        http.securityContext(context -> context
-//                .securityContextRepository(new HttpSessionSecurityContextRepository())
-//        );
+        http.securityContext(context -> context
+                .securityContextRepository(new HttpSessionSecurityContextRepository())
+        );
 
         http.authorizeHttpRequests(authorizeRequests ->
                 authorizeRequests.requestMatchers(
-                        "/payment-system/**",
-                        "/api/payments/**",
-                                "/api/payments/checkout",
+
+
                                 "/api/payments/webhook",
                                 "/payment-system/login",
-                                "/payment-system/register",
-                                "/api/data/**",
-                                "/api/data/userdata/",
-                                "/api/data/userdata/transactions",
-                                "/api/data/userdata/transactions/uuid/").permitAll()
-                .anyRequest().authenticated()
+                                "/payment-system/register").permitAll()
+
+                        .requestMatchers(
+                        "/api/payments/checkout",
+                        "/api/data/**",
+                        "/api/data/userdata/",
+                        "/api/data/userdata/transactions",
+                        "/api/data/userdata/transactions/uuid/**").authenticated()
+                        .anyRequest().authenticated());
 
 
 
 
-        );
+
+
+
+
 
         return http.build();
 }
