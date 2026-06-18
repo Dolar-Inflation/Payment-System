@@ -7,8 +7,7 @@ import com.resume.paymentsystem.DAO.Repository.PaymentRepository;
 import com.resume.paymentsystem.DTO.CheckoutDTO;
 import com.resume.paymentsystem.DTO.OrderRequest;
 import com.resume.paymentsystem.DTO.PaymentResponse;
-import com.resume.paymentsystem.Service.IPaymentService;
-import com.resume.paymentsystem.Service.StripePaymentService;
+import com.resume.paymentsystem.Service.IStripePaymentService;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import jakarta.servlet.http.HttpSession;
@@ -26,13 +25,13 @@ import java.util.Map;
 @Slf4j
 public class PaymentController {
 
-//    private final StripePaymentService stripePayment;
+//    private final StripePaymentServiceImpl stripePayment;
     private final PaymentRepository paymentRepository;
     private final AccountRepository accountRepository;
-    private final IPaymentService stripePaymentService;
+    private final IStripePaymentService stripePaymentService;
 
 
-    public PaymentController(/*StripePaymentService stripePayment,*/ PaymentRepository paymentRepository, AccountRepository accountRepository, IPaymentService stripePaymentService) {
+    public PaymentController(/*StripePaymentServiceImpl stripePayment,*/ PaymentRepository paymentRepository, AccountRepository accountRepository, IStripePaymentService stripePaymentService) {
 //        this.stripePayment = stripePayment;
         this.paymentRepository = paymentRepository;
         this.accountRepository = accountRepository;

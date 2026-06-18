@@ -5,13 +5,10 @@ import com.resume.paymentsystem.DAO.Repository.AccountRepository;
 import com.resume.paymentsystem.DAO.Repository.PaymentRepository;
 import com.resume.paymentsystem.DTO.AccountDTO;
 import com.resume.paymentsystem.DTO.PaymentDTO;
-import com.resume.paymentsystem.Mappers.PaymentMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +19,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class TransactionService implements TransactionServiceI  {
+public class TransactionServiceImpl implements ITransactionService {
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -31,7 +28,7 @@ public class TransactionService implements TransactionServiceI  {
     private final AccountRepository accountRepository;
 
 
-    public TransactionService(PaymentRepository paymentRepository, AccountRepository accountRepository) {
+    public TransactionServiceImpl(PaymentRepository paymentRepository, AccountRepository accountRepository) {
         this.paymentRepository = paymentRepository;
         this.accountRepository = accountRepository;
 

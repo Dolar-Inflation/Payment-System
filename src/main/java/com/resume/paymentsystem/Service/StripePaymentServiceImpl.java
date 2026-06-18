@@ -35,9 +35,9 @@ import java.util.Objects;
 
 
 @Service
-public class StripePaymentService implements IPaymentService  {
+public class StripePaymentServiceImpl implements /*IStripePaymentService */ Pay{
 
-    Logger logger = LoggerFactory.getLogger(StripePaymentService.class);
+    Logger logger = LoggerFactory.getLogger(StripePaymentServiceImpl.class);
 
     private final PaymentRepository paymentRepository;
 
@@ -49,7 +49,7 @@ public class StripePaymentService implements IPaymentService  {
 
 
 
-    public StripePaymentService(PaymentRepository paymentRepository, AccountRepository accountRepository) {
+    public StripePaymentServiceImpl(PaymentRepository paymentRepository, AccountRepository accountRepository) {
         this.paymentRepository = paymentRepository;
         this.accountRepository = accountRepository;
     }
