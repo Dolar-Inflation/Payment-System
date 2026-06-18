@@ -41,7 +41,13 @@ public class SecurityConfig {
 
                                 "/api/payments/webhook",
                                 "/payment-system/login",
-                                "/payment-system/register").permitAll()
+                                "/payment-system/register",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/api-docs",
+                                "/docs/**",
+                                "/api-docs/**").permitAll()
 
                         .requestMatchers(
                         "/api/payments/checkout",

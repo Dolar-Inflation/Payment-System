@@ -23,6 +23,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/payment-system/")
+/** Класс который представляет взаимодействие с аккаунтом пользователя <p>Позволяет авторизовать и
+ * аутентифицировать пользователя создаёт сессию и записывает её в redis в виде Account
+ * также есть эндпоинт для возвращения Account.name</p>
+ *
+ * @author Siutsou Mikhail
+ * @version 0.03
+ * @since 0.01
+ * */
 public class AccountController {
 
 
@@ -35,14 +43,17 @@ public class AccountController {
 
     public AccountController(AccountServiceI accountService, AuthenticationManager authenticationManager) {
         this.accountService = accountService;
-
-
-//        this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
     }
+
+/** Регистрирует пользователя(записывая его в бд) пароль хешируется
+ * @param accountDTO логин и пароль не должны быть isBlank и isEmpty также логин должен быть уникальным
+ * @throws  EntityExistsException если сущность существует
+ * @throws IllegalArgumentException если логин или пароль isBlank == true*/
 @PostMapping("/register")
     public ResponseEntity<String> createAccount( @RequestBody AccountDTO accountDTO) {
-        try {return accountService.createEntity(accountDTO);}
+        try {
+            return accountService.createEntity(accountDTO);}
         catch (EntityExistsException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }
@@ -81,6 +92,7 @@ public class AccountController {
         AccountDTO account = (AccountDTO) session.getAttribute("account");
         return account.name();
     }
+
     @GetMapping("/userdata/all")
     public Map<Long,String> getAllUserData() {
 
