@@ -25,17 +25,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import ru.deelter.yookassa.data.impl.Payment;
+import ru.deelter.yookassa.utils.YooRequestUrls;
 import tools.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 
 
 @Service
-public class StripePaymentServiceImpl implements /*IStripePaymentService */ Pay{
+public class StripePaymentServiceImpl implements IStripePaymentService {
 
     Logger logger = LoggerFactory.getLogger(StripePaymentServiceImpl.class);
 
@@ -53,6 +57,7 @@ public class StripePaymentServiceImpl implements /*IStripePaymentService */ Pay{
         this.paymentRepository = paymentRepository;
         this.accountRepository = accountRepository;
     }
+
 
 
 
@@ -139,6 +144,8 @@ public class StripePaymentServiceImpl implements /*IStripePaymentService */ Pay{
         return PaymentIntent.create(params);
 
     }
+
+
 //    //TODO Добавить сериализацию и десериализацию на Account и AccountDTO
 //    //TODO исправить n+1 на авторизации
 //    public String createSessionLink(CheckoutDTO checkoutDTO, HttpSession httpSession) throws StripeException {

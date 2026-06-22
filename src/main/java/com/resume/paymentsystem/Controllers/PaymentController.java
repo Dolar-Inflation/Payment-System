@@ -7,16 +7,20 @@ import com.resume.paymentsystem.DAO.Repository.PaymentRepository;
 import com.resume.paymentsystem.DTO.CheckoutDTO;
 import com.resume.paymentsystem.DTO.OrderRequest;
 import com.resume.paymentsystem.DTO.PaymentResponse;
-import com.resume.paymentsystem.Service.IStripePaymentService;
+import com.resume.paymentsystem.Service.Pay;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.deelter.yookassa.data.impl.Webhook;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.Map;
 
@@ -28,21 +32,21 @@ public class PaymentController {
 //    private final StripePaymentServiceImpl stripePayment;
     private final PaymentRepository paymentRepository;
     private final AccountRepository accountRepository;
-    private final IStripePaymentService stripePaymentService;
+    private final Pay pay;
 
 
-    public PaymentController(/*StripePaymentServiceImpl stripePayment,*/ PaymentRepository paymentRepository, AccountRepository accountRepository, IStripePaymentService stripePaymentService) {
+    public PaymentController(/*StripePaymentServiceImpl stripePayment,*/ PaymentRepository paymentRepository, AccountRepository accountRepository, Pay pay) {
 //        this.stripePayment = stripePayment;
         this.paymentRepository = paymentRepository;
         this.accountRepository = accountRepository;
-        this.stripePaymentService = stripePaymentService;
+        this.pay = pay;
     }
 
     @PostMapping("/create")
     public ResponseEntity<PaymentResponse> createPayment(@RequestBody OrderRequest orderRequest) {
 
         try {
-            PaymentIntent intent = (PaymentIntent) stripePaymentService.createPayment(orderRequest);
+            PaymentIntent intent = (PaymentIntent) pay.createPayment(orderRequest);
 
 
             PaymentResponse response = new PaymentResponse(intent.getId(),
@@ -68,7 +72,7 @@ public class PaymentController {
     @PostMapping("checkout")
     public ResponseEntity<?> checkoutPayment(@RequestBody CheckoutDTO checkoutDTO, HttpSession session) throws StripeException, Exception {
         try {
-            String url = stripePaymentService.createSessionLink(checkoutDTO, session);
+            String url = pay.createSessionLink(checkoutDTO, session);
             return ResponseEntity.ok(url);
         }
         catch (StripeException e) {
@@ -79,7 +83,26 @@ public class PaymentController {
 
 
     }
-    @PostMapping("webhook")
+
+    @PostMapping("/paymentYookassa")
+    public ResponseEntity<?> paymentYookassaPayment() throws IOException {
+       ru.deelter.yookassa.data.impl.Payment payment = pay.createPayment();
+       pay.createWebhookRequest();
+        return ResponseEntity.ok(payment);
+    }
+
+
+
+
+    @PostMapping("webhook-yokassa")
+    public ResponseEntity<?> yookassaWebhook(@RequestBody String payload) throws IOException {
+        Webhook webhook = pay.createWebhookRequest();
+        return ResponseEntity.ok(payload + "!!!!!!!!!!!!!!!!!!!" + webhook);
+    }
+
+
+
+    @PostMapping("webhook-stripe")
     public ResponseEntity<?> webhook(@RequestBody String payload, @RequestHeader HttpHeaders headers, Principal principal) throws Exception {
 
 
@@ -88,7 +111,7 @@ public class PaymentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        Map<?,?> data = stripePaymentService.webhookEvent(payload,headersHeaderString);
+        Map<?,?> data = pay.webhookEvent(payload,headersHeaderString);
 
 
 
@@ -117,5 +140,7 @@ public class PaymentController {
         return new ResponseEntity<>("Webhook success",HttpStatus.OK);
 
     }
+
+
 
 }

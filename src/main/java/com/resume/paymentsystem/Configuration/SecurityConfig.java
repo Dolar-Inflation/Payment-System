@@ -51,6 +51,11 @@ public class SecurityConfig {
 
                         .requestMatchers(
                         "/api/payments/checkout",
+                        "/api/payments/webhook-stripe",
+                        "/payment-system/checkout",
+                        "/api/payments/webhook-yokassa",
+                        "/api/payments/webhook-yokassa/**",
+                        "/api/payments/paymentYookassa",
                         "/api/data/**",
                         "/api/data/userdata/",
                         "/api/data/userdata/transactions",
