@@ -3,6 +3,7 @@ package com.resume.paymentsystem.Service;
 import com.resume.paymentsystem.DTO.OrderRequest;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpSession;
+import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.deelter.yookassa.YooKassa;
@@ -33,12 +34,14 @@ public class YookassStripePaymentService implements IYookassaPaymentService {
     @PostConstruct
     public void init() {
         this.yooKassa = YooKassa.create(1388972, ucassaApiSecretKey);
+        System.out.println("yooKassa initialized: " + (this.yooKassa != null));
     }
     @Override
     public Payment createPayment() throws IOException {
 
 
         return yooKassa.createPayment(PaymentCreateData.builder()
+                        .redirect(/*"http://www.yookassa.com/v3/"*/"https://api.yookassa.ru/v3/")
                 .amount(Amount.from(100, Currency.RUB))
                 .description("Buy a coffee")
                 .capture(true)
@@ -49,7 +52,7 @@ public class YookassStripePaymentService implements IYookassaPaymentService {
     @Override
     public Webhook createWebhookRequest() throws IOException {
         YooKassaEvent yooKassaEvent = YooKassaEvent.getByName("payment.succeeded");
-        WebhookCreateData webhookCreateData = new WebhookCreateData(yooKassaEvent,"192.168.10.87/api/payments/");
+        WebhookCreateData webhookCreateData = new WebhookCreateData(yooKassaEvent,"https://expressed-coupon-blocked-video.trycloudflare.com/api/payments/webhook-yokassa");
 
         return yooKassa.createWebhook(webhookCreateData);
     }
@@ -58,5 +61,7 @@ public class YookassStripePaymentService implements IYookassaPaymentService {
     public YooRequestUrls createYooRequestUrls() {
         return null;
     }
+
+
 
 }
