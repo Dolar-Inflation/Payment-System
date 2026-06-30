@@ -1,5 +1,6 @@
 package com.resume.paymentsystem.Controllers;
 
+import com.google.gson.Gson;
 import com.resume.paymentsystem.DAO.Entity.Account;
 import com.resume.paymentsystem.DAO.Entity.Payment;
 import com.resume.paymentsystem.DAO.Repository.AccountRepository;
@@ -7,6 +8,7 @@ import com.resume.paymentsystem.DAO.Repository.PaymentRepository;
 import com.resume.paymentsystem.DTO.CheckoutDTO;
 import com.resume.paymentsystem.DTO.OrderRequest;
 import com.resume.paymentsystem.DTO.PaymentResponse;
+import com.resume.paymentsystem.Service.Dud;
 import com.resume.paymentsystem.Service.Pay;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
@@ -19,6 +21,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.deelter.yookassa.data.impl.Webhook;
+import ru.deelter.yookassa.data.impl.requests.PaymentCaptureData;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -33,13 +37,17 @@ public class PaymentController {
     private final PaymentRepository paymentRepository;
     private final AccountRepository accountRepository;
     private final Pay pay;
+    private final Dud dud;
+    private final ObjectMapper objectMapper;
 
 
-    public PaymentController(/*StripePaymentServiceImpl stripePayment,*/ PaymentRepository paymentRepository, AccountRepository accountRepository, Pay pay) {
+    public PaymentController(/*StripePaymentServiceImpl stripePayment,*/ PaymentRepository paymentRepository, AccountRepository accountRepository, Pay pay, Dud dud, ObjectMapper objectMapper) {
 //        this.stripePayment = stripePayment;
         this.paymentRepository = paymentRepository;
         this.accountRepository = accountRepository;
         this.pay = pay;
+        this.dud = dud;
+        this.objectMapper = objectMapper;
     }
 
     @PostMapping("/create")
@@ -85,10 +93,13 @@ public class PaymentController {
     }
 
     @PostMapping("/paymentYookassa")
-    public ResponseEntity<?> paymentYookassaPayment() throws IOException {
-       ru.deelter.yookassa.data.impl.Payment payment = pay.createPayment();
-       pay.createWebhookRequest();
-        return ResponseEntity.ok(payment);
+    public String paymentYookassaPayment() throws IOException {
+//       ru.deelter.yookassa.data.impl.Payment payment = pay.createPayment();
+//       pay.createWebhookRequest();
+       ru.deelter.yookassa.data.impl.Payment data=  dud.createPayment();
+       Gson gson = new Gson();
+        log.info("Payment Yookassa created");
+        return gson.toJson(data);
     }
 
 
