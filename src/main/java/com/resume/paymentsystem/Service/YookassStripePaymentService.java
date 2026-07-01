@@ -17,6 +17,7 @@ import ru.deelter.yookassa.data.impl.requests.YooRequest;
 import ru.deelter.yookassa.events.YooKassaEvent;
 import ru.deelter.yookassa.requests.webhooks.WebhookCreateRequest;
 import ru.deelter.yookassa.utils.YooRequestUrls;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.io.IOException;
 import java.util.Map;
@@ -26,24 +27,25 @@ public class YookassStripePaymentService implements IYookassaPaymentService {
 
     @Value("${UCASSA_API_SECRET_KEY}")
     private String ucassaApiSecretKey;
+    private static final YooKassa YOO_KASSA = YooKassa.create(
+            1388972, "test__k65ZNU2IPJpETbUZYWJt3sI_XhF2C5nAvVGVUxGRF8"
 
+    );
 //    private final YooKassa yooKassa = YooKassa.create(1388972, ucassaApiSecretKey);
 
-    private YooKassa yooKassa;
+//    private YooKassa yooKassa;
 
-    @PostConstruct
-    public void init() {
-        this.yooKassa = YooKassa.create(1388972, ucassaApiSecretKey);
-        System.out.println("yooKassa initialized: " + (this.yooKassa != null));
-    }
+//    @PostConstruct
+//    public void init() {
+//        this.yooKassa = YooKassa.create(1388972, ucassaApiSecretKey);
+//        System.out.println("yooKassa initialized: " + (this.yooKassa != null));
+//    }
     @Override
-    public Payment createPayment() throws IOException {
-
-
-        return yooKassa.createPayment(PaymentCreateData.builder()
-                        .redirect(/*"http://www.yookassa.com/v3/"*/"https://api.yookassa.ru/v3/")
+    public  Payment createPayment() throws IOException {
+        return YOO_KASSA.createPayment(PaymentCreateData.builder()
                 .amount(Amount.from(100, Currency.RUB))
                 .description("Buy a coffee")
+                .redirect("https://github.com/deelter")
                 .capture(true)
                 .build()
         );
@@ -52,9 +54,9 @@ public class YookassStripePaymentService implements IYookassaPaymentService {
     @Override
     public Webhook createWebhookRequest() throws IOException {
         YooKassaEvent yooKassaEvent = YooKassaEvent.getByName("payment.succeeded");
-        WebhookCreateData webhookCreateData = new WebhookCreateData(yooKassaEvent,"https://expressed-coupon-blocked-video.trycloudflare.com/api/payments/webhook-yokassa");
+        WebhookCreateData webhookCreateData = new WebhookCreateData(yooKassaEvent,"https://github.com/deelter");
 
-        return yooKassa.createWebhook(webhookCreateData);
+        return YOO_KASSA.createWebhook(webhookCreateData);
     }
 
     @Override

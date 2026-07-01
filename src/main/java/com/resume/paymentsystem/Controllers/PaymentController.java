@@ -23,10 +23,12 @@ import org.springframework.web.bind.annotation.*;
 import ru.deelter.yookassa.data.impl.Webhook;
 import ru.deelter.yookassa.data.impl.requests.PaymentCaptureData;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -96,19 +98,31 @@ public class PaymentController {
     public String paymentYookassaPayment() throws IOException {
 //       ru.deelter.yookassa.data.impl.Payment payment = pay.createPayment();
 //       pay.createWebhookRequest();
-       ru.deelter.yookassa.data.impl.Payment data=  dud.createPayment();
+       ru.deelter.yookassa.data.impl.Payment data=  pay.createPayment();
+//       Webhook webhook = pay.createWebhookRequest();
        Gson gson = new Gson();
         log.info("Payment Yookassa created");
-        return gson.toJson(data);
+
+
+
+        return gson.toJson(data /*+""+ webhook*/);
     }
 
 
 
 
-    @PostMapping("webhook-yokassa")
-    public ResponseEntity<?> yookassaWebhook(@RequestBody String payload) throws IOException {
-        Webhook webhook = pay.createWebhookRequest();
-        return ResponseEntity.ok(payload + "!!!!!!!!!!!!!!!!!!!" + webhook);
+    @PostMapping("capture")
+    public ResponseEntity<?> yookassaWebhook(@RequestBody Map<String, String> uuid) throws IOException {
+
+
+          String uuidStr = uuid.get("UUID");
+        uuidStr = uuidStr.trim().replaceAll("^\"|\"$", "");
+
+        UUID id = UUID.fromString(uuidStr);
+        dud.paymentCaptureRequest(id);
+
+//        Webhook webhook = pay.createWebhookRequest();
+        return ResponseEntity.ok(uuid + "captured" /*+ "!!!!!!!!!!!!!!!!!!!" + webhook*/);
     }
 
 
