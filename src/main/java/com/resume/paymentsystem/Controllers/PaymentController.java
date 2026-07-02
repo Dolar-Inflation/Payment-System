@@ -6,6 +6,7 @@ import com.resume.paymentsystem.DAO.Entity.Payment;
 import com.resume.paymentsystem.DAO.Repository.AccountRepository;
 import com.resume.paymentsystem.DAO.Repository.PaymentRepository;
 import com.resume.paymentsystem.DTO.CheckoutDTO;
+import com.resume.paymentsystem.DTO.InvoiceDTO;
 import com.resume.paymentsystem.DTO.OrderRequest;
 import com.resume.paymentsystem.DTO.PaymentResponse;
 import com.resume.paymentsystem.Service.Dud;
@@ -112,17 +113,17 @@ public class PaymentController {
 
 
     @PostMapping("capture")
-    public ResponseEntity<?> yookassaWebhook(@RequestBody Map<String, String> uuid) throws IOException {
+    public ResponseEntity<?> yookassaWebhook(@RequestBody InvoiceDTO invoiceDTO) throws IOException {
+        System.out.println("Received: " + new ObjectMapper().writeValueAsString(invoiceDTO));
+       String url = dud.CreateInvoice(invoiceDTO);
+//          String uuidStr = uuid.get("UUID");
+//        uuidStr = uuidStr.trim().replaceAll("^\"|\"$", "");
 
-
-          String uuidStr = uuid.get("UUID");
-        uuidStr = uuidStr.trim().replaceAll("^\"|\"$", "");
-
-        UUID id = UUID.fromString(uuidStr);
-        dud.paymentCaptureRequest(id);
+//        UUID id = UUID.fromString(uuidStr);
+//        dud.paymentCaptureRequest(id);
 
 //        Webhook webhook = pay.createWebhookRequest();
-        return ResponseEntity.ok(uuid + "captured" /*+ "!!!!!!!!!!!!!!!!!!!" + webhook*/);
+        return ResponseEntity.ok(url);
     }
 
 
